@@ -249,59 +249,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Upload
-const uploadInput = document.getElementById('galleryUpload');
-const uploadArea  = document.getElementById('uploadArea');
-
-uploadArea?.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
-uploadArea?.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
-uploadArea?.addEventListener('drop', e => {
-  e.preventDefault(); uploadArea.classList.remove('drag-over');
-  handleFiles(e.dataTransfer.files);
-});
-uploadArea?.addEventListener('click', () => uploadInput?.click());
-uploadInput?.addEventListener('change', e => handleFiles(e.target.files));
-
-function handleFiles(files) {
-  Array.from(files).forEach(file => {
-    if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'j9joit6n');
-
-    fetch('https://api.cloudinary.com/v1_1/ewh54at0/image/upload', {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.secure_url) {
-        if (typeof db !== 'undefined') {
-          db.collection('gallery_images').add({
-            src: data.secure_url,
-            label: file.name.replace(/\.[^.]+$/, ''),
-            cat: 'exterior',
-            uploadedAt: new Date().toISOString()
-          });
-        }
-        GALLERY_IMAGES.unshift({ src: data.secure_url, cat: 'exterior', label: file.name.replace(/\.[^.]+$/, '') });
-        galleryFilter = 'all';
-        gallerySearch = '';
-        currentPage = 1;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.filter-btn[data-filter="all"]')?.classList.add('active');
-        const searchInput = document.getElementById('gallerySearch');
-        if (searchInput) searchInput.value = '';
-        renderGallery();
-        showToast('Image uploaded successfully!', 'success');
-      } else {
-        console.error('Cloudinary error:', data);
-        showToast('Upload failed: ' + (data.error?.message || 'Unknown error'), 'error');
-      }
-    })
-    .catch(err => { console.error('Upload error:', err); showToast('Upload failed. Check your connection.', 'error'); });
-  });
-}
 
 /* ── Enquiry Form ─────────────────────────────────────────────── */
 const enquiryForm = document.getElementById('enquiryForm');

@@ -5,5 +5,11 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if false;
     }
+    match /gallery_images/{doc} {
+      allow read, write: if true;
+    }
+    match /admin_settings/{doc} {
+      allow read, write: if true;
+    }
   }
 }

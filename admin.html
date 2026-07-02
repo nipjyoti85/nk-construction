@@ -954,15 +954,38 @@ function changePassword() {
   const cur = document.getElementById('pwdCurrent')?.value;
   const nw  = document.getElementById('pwdNew')?.value;
   const cnf = document.getElementById('pwdConfirm')?.value;
-  const activePassword = localStorage.getItem('nk_admin_password') || 'nk@admin2024';
-  if (cur !== activePassword) { showToast('Current password incorrect.', 'error'); return; }
-  if (nw.length < 8)          { showToast('New password must be at least 8 characters.', 'error'); return; }
-  if (nw !== cnf)             { showToast('Passwords do not match.', 'error'); return; }
-  localStorage.setItem('nk_admin_password', nw);
-  document.getElementById('pwdCurrent').value = '';
-  document.getElementById('pwdNew').value = '';
-  document.getElementById('pwdConfirm').value = '';
-  showToast('Password updated successfully!', 'success');
+  if (nw.length < 8)  { showToast('New password must be at least 8 characters.', 'error'); return; }
+  if (nw !== cnf)     { showToast('Passwords do not match.', 'error'); return; }
+
+  function doChange(storedPwd) {
+    const activePassword = storedPwd || 'nk@admin2024';
+    if (cur !== activePassword) { showToast('Current password incorrect.', 'error'); return; }
+    if (typeof db !== 'undefined') {
+      db.collection('admin_settings').doc('password').set({ value: nw })
+        .then(() => {
+          localStorage.setItem('nk_admin_password', nw);
+          document.getElementById('pwdCurrent').value = '';
+          document.getElementById('pwdNew').value = '';
+          document.getElementById('pwdConfirm').value = '';
+          showToast('Password updated successfully!', 'success');
+        })
+        .catch(() => showToast('Failed to save password. Try again.', 'error'));
+    } else {
+      localStorage.setItem('nk_admin_password', nw);
+      document.getElementById('pwdCurrent').value = '';
+      document.getElementById('pwdNew').value = '';
+      document.getElementById('pwdConfirm').value = '';
+      showToast('Password updated successfully!', 'success');
+    }
+  }
+
+  if (typeof db !== 'undefined') {
+    db.collection('admin_settings').doc('password').get()
+      .then(doc => doChange(doc.exists ? doc.data().value : null))
+      .catch(() => doChange(localStorage.getItem('nk_admin_password')));
+  } else {
+    doChange(localStorage.getItem('nk_admin_password'));
+  }
 }
 
 /* ── Finalize after DOMContentLoaded ────────────────────────── */

@@ -39,14 +39,29 @@ function checkLogin() {
 function doLogin() {
   const pwd = document.getElementById('adminPassword')?.value;
   const err = document.getElementById('loginError');
-  const activePassword = localStorage.getItem('nk_admin_password') || ADMIN_PASSWORD;
-  if (pwd === activePassword) {
-    sessionStorage.setItem('nk_admin_auth', 'true');
-    document.getElementById('adminLogin').style.display = 'none';
-    initDashboard();
+  const btn = document.querySelector('.login-btn');
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+
+  function tryLogin(storedPwd) {
+    const activePassword = storedPwd || ADMIN_PASSWORD;
+    if (pwd === activePassword) {
+      sessionStorage.setItem('nk_admin_auth', 'true');
+      document.getElementById('adminLogin').style.display = 'none';
+      initDashboard();
+    } else {
+      if (err) { err.textContent = 'Incorrect password. Please try again.'; err.style.display = 'block'; }
+      document.getElementById('adminPassword').classList.add('is-invalid');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login to Dashboard'; }
+    }
+  }
+
+  if (typeof db !== 'undefined') {
+    db.collection('admin_settings').doc('password').get()
+      .then(doc => { tryLogin(doc.exists ? doc.data().value : null); })
+      .catch(() => { tryLogin(localStorage.getItem('nk_admin_password')); });
   } else {
-    if (err) { err.textContent = 'Incorrect password. Please try again.'; err.style.display = 'block'; }
-    document.getElementById('adminPassword').classList.add('is-invalid');
+    tryLogin(localStorage.getItem('nk_admin_password'));
   }
 }
 

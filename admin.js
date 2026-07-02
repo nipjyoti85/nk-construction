@@ -39,7 +39,8 @@ function checkLogin() {
 function doLogin() {
   const pwd = document.getElementById('adminPassword')?.value;
   const err = document.getElementById('loginError');
-  if (pwd === ADMIN_PASSWORD) {
+  const activePassword = localStorage.getItem('nk_admin_password') || ADMIN_PASSWORD;
+  if (pwd === activePassword) {
     sessionStorage.setItem('nk_admin_auth', 'true');
     document.getElementById('adminLogin').style.display = 'none';
     initDashboard();

@@ -949,15 +949,20 @@ function checkFirebaseStatus() {
     </div>`;
 }
 
-/* ── Password Change (client-side only, demo) ───────────────── */
+/* ── Password Change ────────────────────────────────────────── */
 function changePassword() {
   const cur = document.getElementById('pwdCurrent')?.value;
   const nw  = document.getElementById('pwdNew')?.value;
   const cnf = document.getElementById('pwdConfirm')?.value;
-  if (cur !== 'nk@admin2024') { showToast('Current password incorrect.', 'error'); return; }
+  const activePassword = localStorage.getItem('nk_admin_password') || 'nk@admin2024';
+  if (cur !== activePassword) { showToast('Current password incorrect.', 'error'); return; }
   if (nw.length < 8)          { showToast('New password must be at least 8 characters.', 'error'); return; }
   if (nw !== cnf)             { showToast('Passwords do not match.', 'error'); return; }
-  showToast('Password updated! (Update ADMIN_PASSWORD in admin.js to persist)', 'success');
+  localStorage.setItem('nk_admin_password', nw);
+  document.getElementById('pwdCurrent').value = '';
+  document.getElementById('pwdNew').value = '';
+  document.getElementById('pwdConfirm').value = '';
+  showToast('Password updated successfully!', 'success');
 }
 
 /* ── Finalize after DOMContentLoaded ────────────────────────── */
